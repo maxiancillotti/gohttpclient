@@ -14,6 +14,7 @@ func (hc *httpClient) do(method string, url string, headers http.Header, body in
 	client := http.Client{}
 
 	fullHeaders := hc.getRequestHeaders(headers)
+	hc.addDefaultRequestHeaders(&fullHeaders)
 
 	marshaledBody, err := hc.getRequestBody(body, fullHeaders.Get("Content-Type"))
 	if err != nil {
@@ -66,8 +67,6 @@ func (hc *httpClient) getRequestHeaders(requestHeaders http.Header) http.Header 
 			result.Set(headerKey, headerVal[0])
 		}
 	}
-
-	hc.addDefaultRequestHeaders(&result)
 
 	return result
 }
