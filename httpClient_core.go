@@ -17,12 +17,12 @@ const (
 	defaultConnectionTimeout  time.Duration = 30 * time.Second
 )
 
-func (hc *httpClient) do(method string, url string, headers http.Header, body interface{}) (*http.Response, error) {
+func (c *client) do(method string, url string, headers http.Header, body interface{}) (*http.Response, error) {
 
-	fullHeaders := hc.getRequestHeaders(headers)
-	hc.addDefaultRequestHeaders(&fullHeaders)
+	fullHeaders := c.getRequestHeaders(headers)
+	c.addDefaultRequestHeaders(&fullHeaders)
 
-	marshaledBody, err := hc.getRequestBody(body, fullHeaders.Get("Content-Type"))
+	marshaledBody, err := c.getRequestBody(body, fullHeaders.Get("Content-Type"))
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshal body. %v", err)
 	}
@@ -33,24 +33,24 @@ func (hc *httpClient) do(method string, url string, headers http.Header, body in
 	}
 	request.Header = fullHeaders
 
-	hc.setHttpClient()
+	c.setupHttpClient()
 
-	return hc.client.Do(request)
+	return c.client.Do(request)
 }
 
-func (hc *httpClient) setHttpClient() {
+func (c *client) setupHttpClient() {
 
-	if hc.updateTransportSettings || hc.client == nil {
-		hc.client = &http.Client{
-			Timeout: hc.connectionTimeout + hc.responseTimeOut,
+	if c.client == nil {
+		c.client = &http.Client{
+			Timeout: c.connectionTimeout + c.responseTimeOut,
 			Transport: &http.Transport{
-				//MaxIdleConnsPerHost:   hc.getMaxIdleConnections(), // Requests per minute is a good metric to set this value
-				MaxIdleConnsPerHost: hc.maxIdleConnections, // Requests per minute is a good metric to set this value
-				//ResponseHeaderTimeout: hc.getResponseTimeOut(),    // Response timeout after we have sent the Request
-				ResponseHeaderTimeout: hc.responseTimeOut, // Response timeout after we have sent the Request
+				//MaxIdleConnsPerHost:   c.getMaxIdleConnections(), // Requests per minute is a good metric to set this value
+				MaxIdleConnsPerHost: c.maxIdleConnections, // Requests per minute is a good metric to set this value
+				//ResponseHeaderTimeout: c.getResponseTimeOut(),    // Response timeout after we have sent the Request
+				ResponseHeaderTimeout: c.responseTimeOut, // Response timeout after we have sent the Request
 				DialContext: (&net.Dialer{
-					//Timeout:   hc.getConnectionTimeout(), // Request connection timeout
-					Timeout:   hc.connectionTimeout, // Request connection timeout
+					//Timeout:   c.getConnectionTimeout(), // Request connection timeout
+					Timeout:   c.connectionTimeout, // Request connection timeout
 					KeepAlive: 30 * time.Second,
 				}).DialContext,
 				// Acá abajo es igual a DefaulTransport
@@ -62,33 +62,31 @@ func (hc *httpClient) setHttpClient() {
 			},
 		}
 	}
-
-	hc.updateTransportSettings = false
 }
 
 /*
-func (hc *httpClient) getMaxIdleConnections() int {
-	if hc.maxIdleConnections > 0 {
-		return hc.maxIdleConnections
+func (c *client) getMaxIdleConnections() int {
+	if c.maxIdleConnections > 0 {
+		return c.maxIdleConnections
 	}
 	return defaultMaxIdleConnections
 }
 
-func (hc *httpClient) getResponseTimeOut() time.Duration {
-	if hc.responseTimeOut > 0 {
-		return hc.responseTimeOut
+func (c *client) getResponseTimeOut() time.Duration {
+	if c.responseTimeOut > 0 {
+		return c.responseTimeOut
 	}
 	return defaultResponseTimeOut
 }
 
-func (hc *httpClient) getConnectionTimeout() time.Duration {
-	if hc.connectionTimeout > 0 {
-		return hc.connectionTimeout
+func (c *client) getConnectionTimeout() time.Duration {
+	if c.connectionTimeout > 0 {
+		return c.connectionTimeout
 	}
 	return defaultConnectionTimeout
 }
 */
-func (hc *httpClient) getRequestBody(body interface{}, contentType string) ([]byte, error) {
+func (c *client) getRequestBody(body interface{}, contentType string) ([]byte, error) {
 
 	if body == nil {
 		return nil, nil
@@ -108,12 +106,12 @@ func (hc *httpClient) getRequestBody(body interface{}, contentType string) ([]by
 
 }
 
-func (hc *httpClient) getRequestHeaders(requestHeaders http.Header) http.Header {
+func (c *client) getRequestHeaders(requestHeaders http.Header) http.Header {
 
 	result := make(http.Header)
 
 	// Adding common headers
-	for headerKey, headerVal := range hc.headers {
+	for headerKey, headerVal := range c.headers {
 		if len(headerVal) > 0 {
 			result.Set(headerKey, headerVal[0])
 		}
@@ -129,7 +127,7 @@ func (hc *httpClient) getRequestHeaders(requestHeaders http.Header) http.Header 
 	return result
 }
 
-func (hc *httpClient) addDefaultRequestHeaders(requestHeaders *http.Header) {
+func (c *client) addDefaultRequestHeaders(requestHeaders *http.Header) {
 
 	if requestHeaders.Get("Content-Type") == "" {
 		requestHeaders.Set("Content-Type", "application/json")

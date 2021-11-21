@@ -13,34 +13,32 @@ type HttpClient interface {
 	DELETE(url string, headers http.Header) (*http.Response, error)
 }
 
-type httpClient struct {
+type client struct {
 	client *http.Client // Only one http client is created and can be reused on every call
 
 	maxIdleConnections int
 	connectionTimeout  time.Duration
 	responseTimeOut    time.Duration
 
-	updateTransportSettings bool
-
 	headers http.Header
 }
 
-func (hc *httpClient) GET(url string, headers http.Header) (*http.Response, error) {
-	return hc.do(http.MethodGet, url, headers, nil)
+func (c *client) GET(url string, headers http.Header) (*http.Response, error) {
+	return c.do(http.MethodGet, url, headers, nil)
 }
 
-func (hc *httpClient) POST(url string, headers http.Header, body interface{}) (*http.Response, error) {
-	return hc.do(http.MethodGet, url, headers, body)
+func (c *client) POST(url string, headers http.Header, body interface{}) (*http.Response, error) {
+	return c.do(http.MethodGet, url, headers, body)
 }
 
-func (hc *httpClient) PUT(url string, headers http.Header, body interface{}) (*http.Response, error) {
-	return hc.do(http.MethodGet, url, headers, body)
+func (c *client) PUT(url string, headers http.Header, body interface{}) (*http.Response, error) {
+	return c.do(http.MethodGet, url, headers, body)
 }
 
-func (hc *httpClient) PATCH(url string, headers http.Header, body interface{}) (*http.Response, error) {
-	return hc.do(http.MethodGet, url, headers, body)
+func (c *client) PATCH(url string, headers http.Header, body interface{}) (*http.Response, error) {
+	return c.do(http.MethodGet, url, headers, body)
 }
 
-func (hc *httpClient) DELETE(url string, headers http.Header) (*http.Response, error) {
-	return hc.do(http.MethodGet, url, headers, nil)
+func (c *client) DELETE(url string, headers http.Header) (*http.Response, error) {
+	return c.do(http.MethodGet, url, headers, nil)
 }
