@@ -6,12 +6,6 @@ import (
 )
 
 type HttpClient interface {
-	SetHeaders(headers http.Header)
-
-	SetMaxIdleConnections(maxIdleConnections int)
-	SetResponseTimeOut(requestTimeOut time.Duration)
-	SetConnectionTimeout(connectionTimeout time.Duration)
-
 	GET(url string, headers http.Header) (*http.Response, error)
 	POST(url string, headers http.Header, body interface{}) (*http.Response, error)
 	PUT(url string, headers http.Header, body interface{}) (*http.Response, error)
@@ -29,38 +23,6 @@ type httpClient struct {
 	updateTransportSettings bool
 
 	headers http.Header
-}
-
-func New() HttpClient {
-	return &httpClient{
-		updateTransportSettings: true,
-		maxIdleConnections:      defaultMaxIdleConnections,
-		connectionTimeout:       defaultConnectionTimeout,
-		responseTimeOut:         defaultResponseTimeOut,
-	}
-}
-
-// Set common headers to use during all client life
-func (hc *httpClient) SetHeaders(headers http.Header) {
-	hc.headers = headers
-}
-
-// Set common headers to use during all client life
-func (hc *httpClient) SetMaxIdleConnections(maxIdleConnections int) {
-	hc.maxIdleConnections = maxIdleConnections
-	hc.updateTransportSettings = true
-}
-
-// Set common headers to use during all client life
-func (hc *httpClient) SetConnectionTimeout(connectionTimeout time.Duration) {
-	hc.connectionTimeout = connectionTimeout
-	hc.updateTransportSettings = true
-}
-
-// Set common headers to use during all client life
-func (hc *httpClient) SetResponseTimeOut(responseTimeOut time.Duration) {
-	hc.responseTimeOut = responseTimeOut
-	hc.updateTransportSettings = true
 }
 
 func (hc *httpClient) GET(url string, headers http.Header) (*http.Response, error) {
