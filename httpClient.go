@@ -2,7 +2,7 @@ package httpClient
 
 import (
 	"net/http"
-	"time"
+	"sync"
 )
 
 type HttpClient interface {
@@ -14,13 +14,9 @@ type HttpClient interface {
 }
 
 type client struct {
-	client *http.Client // Only one http client is created and can be reused on every call
-
-	maxIdleConnections int
-	connectionTimeout  time.Duration
-	responseTimeOut    time.Duration
-
-	headers http.Header
+	httpClient *http.Client // Only one http client is created and can be reused on every call
+	builder    *clientBuilder
+	clientOnce sync.Once
 }
 
 func (c *client) GET(url string, headers http.Header) (*http.Response, error) {

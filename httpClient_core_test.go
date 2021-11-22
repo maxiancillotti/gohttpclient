@@ -8,24 +8,24 @@ import (
 func TestGetRequestHeaders(t *testing.T) {
 
 	// Initialization
-	hc := &httpClient{}
+	c := &client{}
 	commonHeaders := make(http.Header)
 	commonHeaders.Set("Content-Type", "application/json")
-	commonHeaders.Set("User-Agent", "httpClient-MaxiAncillotti")
-	hc.SetHeaders(commonHeaders)
+	commonHeaders.Set("User-Agent", "client-MaxiAncillotti")
+	c.builder.SetHeaders(commonHeaders)
 
 	// Execution
 	requestHeaders := make(http.Header)
 	requestHeaders.Set("X-Request-Id", "ABC-123")
 
-	finalHeaders := hc.getRequestHeaders(requestHeaders)
+	finalHeaders := c.getRequestHeaders(requestHeaders)
 
 	// Validation
 	if finalHeaders.Get("Content-Type") != "application/json" {
 		t.Error("Invalid value for Content-Type header")
 	}
 
-	if finalHeaders.Get("User-Agent") != "httpClient-MaxiAncillotti" {
+	if finalHeaders.Get("User-Agent") != "client-MaxiAncillotti" {
 		t.Error("Invalid value for User-Agent header")
 	}
 
@@ -38,21 +38,21 @@ func TestGetRequestHeaders(t *testing.T) {
 func TestAddDefaultRequestHeaders(t *testing.T) {
 
 	// Initialization
-	hc := &httpClient{}
+	c := &client{}
 	headers := make(http.Header)
 	headers.Set("Content-Type", "application/xml")
-	headers.Set("User-Agent", "httpClient-MaxiAncillotti")
-	hc.SetHeaders(headers)
+	headers.Set("User-Agent", "client-MaxiAncillotti")
+	c.builder.SetHeaders(headers)
 
 	// Execution
-	hc.addDefaultRequestHeaders(&headers)
+	c.addDefaultRequestHeaders(&headers)
 
 	// Validation
 	if headers.Get("Content-Type") != "application/xml" {
 		t.Error("Invalid value for Content-Type header")
 	}
 
-	if headers.Get("User-Agent") != "httpClient-MaxiAncillotti" {
+	if headers.Get("User-Agent") != "client-MaxiAncillotti" {
 		t.Error("Invalid value for User-Agent header")
 	}
 
@@ -64,11 +64,11 @@ func TestAddDefaultRequestHeaders(t *testing.T) {
 func TestGetRequestBodyNilBody(t *testing.T) {
 
 	// Initialization
-	hc := &httpClient{}
+	c := &client{}
 	var body string
 
 	// Execution
-	marshaledBody, err := hc.getRequestBody(body, hc.headers.Get("Content-Type"))
+	marshaledBody, err := c.getRequestBody(body, c.builder.headers.Get("Content-Type"))
 
 	// Validation
 	if err != nil {
@@ -82,7 +82,7 @@ func TestGetRequestBodyNilBody(t *testing.T) {
 func TestGetRequestBodyDefaultContentType(t *testing.T) {
 
 	// Initialization
-	hc := &httpClient{}
+	c := &client{}
 	var body struct {
 		BodyField1 string `json:"body_field_1"`
 		BodyField2 string `json:"body_field_2"`
@@ -92,7 +92,7 @@ func TestGetRequestBodyDefaultContentType(t *testing.T) {
 	body.BodyField2 = "field_2_value"
 
 	// Execution
-	marshaledBody, err := hc.getRequestBody(body, hc.headers.Get("Content-Type"))
+	marshaledBody, err := c.getRequestBody(body, c.builder.headers.Get("Content-Type"))
 
 	// Validation
 	if err != nil {
@@ -105,7 +105,7 @@ func TestGetRequestBodyDefaultContentType(t *testing.T) {
 func TestGetRequestBodyContentTypeJSON(t *testing.T) {
 
 	// Initialization
-	hc := &httpClient{}
+	c := &client{}
 	var body struct {
 		BodyField1 string `json:"body_field_1"`
 		BodyField2 string `json:"body_field_2"`
@@ -116,10 +116,10 @@ func TestGetRequestBodyContentTypeJSON(t *testing.T) {
 
 	headers := make(http.Header)
 	headers.Set("Content-Type", "application/json")
-	hc.SetHeaders(headers)
+	c.builder.SetHeaders(headers)
 
 	// Execution
-	marshaledBody, err := hc.getRequestBody(body, hc.headers.Get("Content-Type"))
+	marshaledBody, err := c.getRequestBody(body, c.builder.headers.Get("Content-Type"))
 
 	// Validation
 	if err != nil {
@@ -132,7 +132,7 @@ func TestGetRequestBodyContentTypeJSON(t *testing.T) {
 func TestGetRequestBodyContentTypeXML(t *testing.T) {
 
 	// Initialization
-	hc := &httpClient{}
+	c := &client{}
 
 	type XMLStruct struct {
 		BodyField1 string `xml:"body_field_1"`
@@ -146,10 +146,10 @@ func TestGetRequestBodyContentTypeXML(t *testing.T) {
 
 	headers := make(http.Header)
 	headers.Set("Content-Type", "application/xml")
-	hc.SetHeaders(headers)
+	c.builder.SetHeaders(headers)
 
 	// Execution
-	marshaledBody, err := hc.getRequestBody(body, hc.headers.Get("Content-Type"))
+	marshaledBody, err := c.getRequestBody(body, c.builder.headers.Get("Content-Type"))
 
 	// Validation
 	if err != nil {

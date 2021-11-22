@@ -5,8 +5,12 @@ import (
 	"time"
 )
 
+// Methods returning interface can concatenate method calls
 type HttpClientBuilder interface {
-	SetHeaders(headers http.Header) HttpClientBuilder // Returning interface so we can concatenate methods
+
+	// SetHeaders: Set common headers to use during all client life
+	SetHeaders(headers http.Header) HttpClientBuilder
+	SetBaseUrl(baseUrl string) HttpClientBuilder
 
 	SetMaxIdleConnections(maxIdleConnections int) HttpClientBuilder
 	SetResponseTimeOut(requestTimeOut time.Duration) HttpClientBuilder
@@ -15,49 +19,53 @@ type HttpClientBuilder interface {
 	Build() HttpClient
 }
 
-type builder struct {
+type clientBuilder struct {
 	maxIdleConnections int
 	connectionTimeout  time.Duration
 	responseTimeOut    time.Duration
 
 	headers http.Header
+	baseUrl string
 }
 
 func NewBuilder() HttpClientBuilder {
-	return &builder{
+	return &clientBuilder{
 		maxIdleConnections: defaultMaxIdleConnections,
 		connectionTimeout:  defaultConnectionTimeout,
 		responseTimeOut:    defaultResponseTimeOut,
 	}
 }
 
-func (b *builder) Build() HttpClient {
+func (b *clientBuilder) Build() HttpClient {
 	return &client{
-		maxIdleConnections: b.maxIdleConnections,
-		connectionTimeout:  b.connectionTimeout,
-		responseTimeOut:    b.responseTimeOut,
-
-		headers: b.headers,
+		builder: b,
 	}
 }
 
-// Set common headers to use during all client life
-func (b *builder) SetHeaders(headers http.Header) HttpClientBuilder {
+func (b *clientBuilder) SetHeaders(headers http.Header) HttpClientBuilder {
 	b.headers = headers
 	return b
 }
 
-func (b *builder) SetMaxIdleConnections(maxIdleConnections int) HttpClientBuilder {
+func (b *clientBuilder) SetBaseUrl(baseUrl string) HttpClientBuilder {
+	b.baseUrl = baseUrl
+	return b
+}
+
+// Requests per minute is a good metric to set this value
+func (b *clientBuilder) SetMaxIdleConnections(maxIdleConnections int) HttpClientBuilder {
 	b.maxIdleConnections = maxIdleConnections
 	return b
 }
 
-func (b *builder) SetConnectionTimeout(connectionTimeout time.Duration) HttpClientBuilder {
+// Request connection timeout
+func (b *clientBuilder) SetConnectionTimeout(connectionTimeout time.Duration) HttpClientBuilder {
 	b.connectionTimeout = connectionTimeout
 	return b
 }
 
-func (b *builder) SetResponseTimeOut(responseTimeOut time.Duration) HttpClientBuilder {
+// Response timeout after we have sent the Request
+func (b *clientBuilder) SetResponseTimeOut(responseTimeOut time.Duration) HttpClientBuilder {
 	b.responseTimeOut = responseTimeOut
 	return b
 }
