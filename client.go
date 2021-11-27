@@ -1,11 +1,11 @@
-package httpClient
+package gohttpclient
 
 import (
 	"net/http"
 	"sync"
 )
 
-type HttpClient interface {
+type Client interface {
 	GET(url string, headers http.Header) (*http.Response, error)
 	POST(url string, headers http.Header, body interface{}) (*http.Response, error)
 	PUT(url string, headers http.Header, body interface{}) (*http.Response, error)

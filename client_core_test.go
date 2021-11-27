@@ -1,4 +1,4 @@
-package httpClient
+package gohttpclient
 
 import (
 	"net/http"
@@ -12,6 +12,8 @@ func TestGetRequestHeaders(t *testing.T) {
 	commonHeaders := make(http.Header)
 	commonHeaders.Set("Content-Type", "application/json")
 	commonHeaders.Set("User-Agent", "client-MaxiAncillotti")
+
+	c.builder = &clientBuilder{}
 	c.builder.SetHeaders(commonHeaders)
 
 	// Execution
@@ -42,6 +44,8 @@ func TestAddDefaultRequestHeaders(t *testing.T) {
 	headers := make(http.Header)
 	headers.Set("Content-Type", "application/xml")
 	headers.Set("User-Agent", "client-MaxiAncillotti")
+
+	c.builder = &clientBuilder{}
 	c.builder.SetHeaders(headers)
 
 	// Execution
@@ -61,21 +65,34 @@ func TestAddDefaultRequestHeaders(t *testing.T) {
 	}
 }
 
-func TestGetRequestBodyNilBody(t *testing.T) {
+func TestGetRequestBodyEmpty(t *testing.T) {
 
 	// Initialization
 	c := &client{}
-	var body string
+	c.builder = &clientBuilder{}
+	var bodyStr string
+	var bodyBytes []byte
 
 	// Execution
-	marshaledBody, err := c.getRequestBody(body, c.builder.headers.Get("Content-Type"))
+	marshaledBodyFromStr, err := c.getRequestBody(bodyStr, c.builder.headers.Get("Content-Type"))
 
 	// Validation
 	if err != nil {
 		t.Errorf("Cannot marshal body. %v", err)
 	}
-	if marshaledBody != nil {
-		t.Errorf("Marshaled body is not nil")
+	if marshaledBodyFromStr != nil {
+		t.Errorf("Marshaled body is not nil: %s", string(marshaledBodyFromStr))
+	}
+
+	// Execution
+	marshaledBodyFromBytes, err := c.getRequestBody(bodyBytes, c.builder.headers.Get("Content-Type"))
+
+	// Validation
+	if err != nil {
+		t.Errorf("Cannot marshal body. %v", err)
+	}
+	if marshaledBodyFromBytes != nil {
+		t.Errorf("Marshaled body is not nil: %s", string(marshaledBodyFromBytes))
 	}
 }
 
@@ -83,6 +100,7 @@ func TestGetRequestBodyDefaultContentType(t *testing.T) {
 
 	// Initialization
 	c := &client{}
+	c.builder = &clientBuilder{}
 	var body struct {
 		BodyField1 string `json:"body_field_1"`
 		BodyField2 string `json:"body_field_2"`
@@ -106,6 +124,7 @@ func TestGetRequestBodyContentTypeJSON(t *testing.T) {
 
 	// Initialization
 	c := &client{}
+	c.builder = &clientBuilder{}
 	var body struct {
 		BodyField1 string `json:"body_field_1"`
 		BodyField2 string `json:"body_field_2"`
@@ -133,7 +152,7 @@ func TestGetRequestBodyContentTypeXML(t *testing.T) {
 
 	// Initialization
 	c := &client{}
-
+	c.builder = &clientBuilder{}
 	type XMLStruct struct {
 		BodyField1 string `xml:"body_field_1"`
 		BodyField2 string `xml:"body_field_2"`

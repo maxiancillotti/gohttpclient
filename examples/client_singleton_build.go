@@ -1,16 +1,17 @@
 package examples
 
 import (
-	"httpClient"
 	"time"
+
+	"github.com/maxiancillotti/gohttpclient"
 )
 
 var (
-	client = getHttpClient()
+	httpClient = getHttpClient()
 )
 
-func getHttpClient() httpClient.HttpClient {
-	client := httpClient.NewBuilder().
+func getHttpClient() gohttpclient.Client {
+	client := gohttpclient.NewBuilder().
 		SetConnectionTimeout(2 * time.Second).
 		SetResponseTimeOut(3 * time.Second).
 		Build()

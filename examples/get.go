@@ -1,15 +1,16 @@
 package examples
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 )
 
-func Get() (string, error) {
-	resp, err := client.GET("https://api.github.com", nil)
+func GetExample() (string, error) {
+	resp, err := httpClient.GET("https://api.github.com", nil)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
@@ -20,21 +21,13 @@ func Get() (string, error) {
 
 	fmt.Println("Status Code: ", resp.StatusCode)
 	fmt.Println("Status: ", resp.Status)
-	/*
-		var bodyJSON []byte
 
-		err = json.Indent(bytes.NewBuffer(bodyJSON), bodyBytes, "", "	")
-		if err != nil {
-			return "", err
-		}
+	var bodyJSONBuf bytes.Buffer
+	err = json.Indent(&bodyJSONBuf, bodyBytes, "", "\t")
+	if err != nil {
+		return "", err
+	}
 
-		bodyString := string(bodyJSON)
-		fmt.Println("Body: ", bodyString)
-		return bodyString, nil
-	*/
-
-	bodyString := string(bodyBytes)
-	fmt.Println("Body: ", bodyString)
-	return bodyString, nil
-
+	fmt.Println("Body: ", bodyJSONBuf.String())
+	return bodyJSONBuf.String(), nil
 }

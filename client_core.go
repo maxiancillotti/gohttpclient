@@ -1,4 +1,4 @@
-package httpClient
+package gohttpclient
 
 import (
 	"bytes"
@@ -25,6 +25,10 @@ func (c *client) do(method string, url string, headers http.Header, body interfa
 	marshaledBody, err := c.getRequestBody(body, fullHeaders.Get("Content-Type"))
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshal body. %v", err)
+	}
+
+	if mock := mockupServer.getMock(method, url, string(marshaledBody)); mock != nil {
+		return mock.GetResponse()
 	}
 
 	request, err := http.NewRequest(method, url, bytes.NewBuffer(marshaledBody))
@@ -89,8 +93,17 @@ func (c *client) getConnectionTimeout() time.Duration {
 */
 func (c *client) getRequestBody(body interface{}, contentType string) ([]byte, error) {
 
-	if body == nil {
+	switch assertedBody := body.(type) {
+	case nil:
 		return nil, nil
+	case string:
+		if assertedBody == "" {
+			return nil, nil
+		}
+	case []byte:
+		if len(assertedBody) == 0 {
+			return nil, nil
+		}
 	}
 
 	switch strings.ToLower(contentType) {
