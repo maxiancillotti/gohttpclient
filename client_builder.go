@@ -8,7 +8,7 @@ import (
 // Methods returning interface can concatenate method calls
 type ClientBuilder interface {
 
-	// SetHeaders: Set common headers to use during all client life
+	// SetHeaders: set common headers to use during all client life
 	SetHeaders(headers http.Header) ClientBuilder
 
 	SetMaxIdleConnections(maxIdleConnections int) ClientBuilder

@@ -45,19 +45,18 @@ func (c *client) do(method string, url string, headers http.Header, body interfa
 func (c *client) setupHttpClient() {
 
 	c.clientOnce.Do(func() {
+
 		c.httpClient = &http.Client{
 			Timeout: c.builder.connectionTimeout + c.builder.responseTimeOut,
 			Transport: &http.Transport{
-				//MaxIdleConnsPerHost:   c.getMaxIdleConnections(), // Requests per minute is a good metric to set this value
-				MaxIdleConnsPerHost: c.builder.maxIdleConnections,
-				//ResponseHeaderTimeout: c.getResponseTimeOut(),    // Response timeout after we have sent the Request
+				MaxIdleConnsPerHost:   c.builder.maxIdleConnections,
 				ResponseHeaderTimeout: c.builder.responseTimeOut,
 				DialContext: (&net.Dialer{
-					//Timeout:   c.getConnectionTimeout(), // Request connection timeout
 					Timeout:   c.builder.connectionTimeout,
 					KeepAlive: 30 * time.Second,
 				}).DialContext,
-				// Acá abajo es igual a DefaulTransport
+
+				// The following properties are equal to DefaulTransport
 				ForceAttemptHTTP2:     true,
 				MaxIdleConns:          100,
 				IdleConnTimeout:       90 * time.Second,
@@ -68,7 +67,7 @@ func (c *client) setupHttpClient() {
 	})
 }
 
-// Not necessary anymore because we set defaults on build
+// Not necessary anymore because we now set defaults on build
 /*
 func (c *client) getMaxIdleConnections() int {
 	if c.maxIdleConnections > 0 {
