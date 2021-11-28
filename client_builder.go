@@ -13,12 +13,15 @@ type ClientBuilder interface {
 
 	// SetMaxIdleConnections sets http.Transaport's MaxIdleConnsPerHost property.
 	// Requests per minute is a good metric to set this value.
+	// Default is 5.
 	SetMaxIdleConnections(maxIdleConnections int) ClientBuilder
 
-	//SetConnectionTimeout sets the request connection timeout.
+	// SetConnectionTimeout sets the request connection timeout.
+	// Default is 10 seconds.
 	SetConnectionTimeout(connectionTimeout time.Duration) ClientBuilder
 
-	//SetResponseTimeOut sets the response timeout after we have sent the Request.
+	// SetResponseTimeOut sets the response timeout after we have sent the Request.
+	// Default is 30 seconds.
 	SetResponseTimeOut(requestTimeOut time.Duration) ClientBuilder
 
 	// Build sets the previously configured parameters into our HTTP client
