@@ -6,6 +6,9 @@ import (
 	"net/http"
 )
 
+// The Mock struct provides a clean way to configure HTTP mocks
+// based on the combination between request method, URL and request body.
+
 type Mock struct {
 
 	// These form the Mock Key
@@ -18,6 +21,7 @@ type Mock struct {
 	ResponseStatusCode int
 }
 
+// GetResponse returns an *http.Response  based on the mock config.
 func (m *Mock) GetResponse() (*http.Response, error) {
 	if m.Error != nil {
 		return nil, m.Error

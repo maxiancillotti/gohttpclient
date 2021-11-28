@@ -21,6 +21,8 @@ var (
 	}
 )
 
+// StartMockServer enables the usage of mock data to execute the HTTP calls
+// not doing then the actual call to the target url
 func StartMockServer() {
 	mockupServer.serverMutex.Lock()
 	defer mockupServer.serverMutex.Unlock()
@@ -28,6 +30,8 @@ func StartMockServer() {
 	mockupServer.enabled = true
 }
 
+// StopMockServer disables the usage of mock data to execute the HTTP calls
+// doing then the actual call to the target url
 func StopMockServer() {
 	mockupServer.serverMutex.Lock()
 	defer mockupServer.serverMutex.Unlock()
@@ -35,6 +39,8 @@ func StopMockServer() {
 	mockupServer.enabled = false
 }
 
+// AddMock adds mock data which can be used to execute tests without needing
+// to do an actual HTTP call
 func AddMock(mock Mock) {
 	mockupServer.serverMutex.Lock()
 	defer mockupServer.serverMutex.Unlock()
@@ -43,6 +49,8 @@ func AddMock(mock Mock) {
 	mockupServer.mocks[key] = &mock
 }
 
+// RemoveAllMocks removes all mocks that could have been added by AddMock
+// so you can clean mock data added before that you now don't want to use anymore
 func RemoveAllMocks() {
 	mockupServer.serverMutex.Lock()
 	defer mockupServer.serverMutex.Unlock()

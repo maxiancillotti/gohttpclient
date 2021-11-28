@@ -11,10 +11,18 @@ type ClientBuilder interface {
 	// SetHeaders: set common headers to use during all client life
 	SetHeaders(headers http.Header) ClientBuilder
 
+	// SetMaxIdleConnections sets http.Transaport's MaxIdleConnsPerHost property.
+	// Requests per minute is a good metric to set this value.
 	SetMaxIdleConnections(maxIdleConnections int) ClientBuilder
-	SetResponseTimeOut(requestTimeOut time.Duration) ClientBuilder
+
+	//SetConnectionTimeout sets the request connection timeout.
 	SetConnectionTimeout(connectionTimeout time.Duration) ClientBuilder
 
+	//SetResponseTimeOut sets the response timeout after we have sent the Request.
+	SetResponseTimeOut(requestTimeOut time.Duration) ClientBuilder
+
+	// Build sets the previously configured parameters into our HTTP client
+	// and returns it to perform the desired HTTP calls.
 	Build() Client
 }
 
@@ -26,6 +34,8 @@ type clientBuilder struct {
 	headers http.Header
 }
 
+// NewBuiler returns a ClientBuilder that you can configure to build
+// finally your HTTP client.
 func NewBuilder() ClientBuilder {
 	return &clientBuilder{
 		maxIdleConnections: defaultMaxIdleConnections,
@@ -45,19 +55,16 @@ func (b *clientBuilder) SetHeaders(headers http.Header) ClientBuilder {
 	return b
 }
 
-// Requests per minute is a good metric to set this value
 func (b *clientBuilder) SetMaxIdleConnections(maxIdleConnections int) ClientBuilder {
 	b.maxIdleConnections = maxIdleConnections
 	return b
 }
 
-// Request connection timeout
 func (b *clientBuilder) SetConnectionTimeout(connectionTimeout time.Duration) ClientBuilder {
 	b.connectionTimeout = connectionTimeout
 	return b
 }
 
-// Response timeout after we have sent the Request
 func (b *clientBuilder) SetResponseTimeOut(responseTimeOut time.Duration) ClientBuilder {
 	b.responseTimeOut = responseTimeOut
 	return b
