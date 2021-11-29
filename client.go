@@ -3,6 +3,8 @@ package gohttpclient
 import (
 	"net/http"
 	"sync"
+
+	"github.com/maxiancillotti/gohttpclient/httpcore"
 )
 
 type Client interface {
@@ -19,7 +21,7 @@ type Client interface {
 }
 
 type client struct {
-	httpClient *http.Client // Only one http client is created and can be reused on every call
+	httpClient httpcore.HttpClient //*http.Client. Only one http client is created and can be reused on every call
 	builder    *clientBuilder
 	clientOnce sync.Once
 }

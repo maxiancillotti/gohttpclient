@@ -5,18 +5,18 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/maxiancillotti/gohttpclient"
+	"github.com/maxiancillotti/gohttpclient/mock"
 )
 
 func TestGetExample(t *testing.T) {
 
-	gohttpclient.StartMockServer()
+	mock.MockupServer.Start()
 
 	t.Run("TestGetExampleFetchingFromAPI", func(t *testing.T) {
 
 		// Initialization
-		gohttpclient.RemoveAllMocks()
-		gohttpclient.AddMock(gohttpclient.Mock{
+		mock.MockupServer.DeleteMocks()
+		mock.MockupServer.AddMock(mock.Mock{
 			Method: http.MethodGet,
 			Url:    "https://api.github.com",
 			Error:  fmt.Errorf("Timeout fetching from API"),

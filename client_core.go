@@ -2,13 +2,12 @@ package gohttpclient
 
 import (
 	"bytes"
-	"encoding/json"
-	"encoding/xml"
 	"fmt"
 	"net"
 	"net/http"
-	"strings"
 	"time"
+
+	"github.com/maxiancillotti/gohttpclient/mock"
 )
 
 const (
@@ -27,10 +26,6 @@ func (c *client) do(method string, url string, headers http.Header, body interfa
 		return nil, fmt.Errorf("unable to marshal body. %v", err)
 	}
 
-	if mock := mockupServer.getMock(method, url, string(marshaledBody)); mock != nil {
-		return mock.GetResponse()
-	}
-
 	request, err := http.NewRequest(method, url, bytes.NewBuffer(marshaledBody))
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new request")
@@ -44,6 +39,10 @@ func (c *client) do(method string, url string, headers http.Header, body interfa
 
 func (c *client) setupHttpClient() {
 
+	if mock.MockupServer.IsEnabled() {
+		c.httpClient = mock.MockupServer.GetClient()
+		return
+	}
 	c.clientOnce.Do(func() {
 
 		c.httpClient = &http.Client{
@@ -65,87 +64,4 @@ func (c *client) setupHttpClient() {
 			},
 		}
 	})
-}
-
-// Not necessary anymore because we now set defaults on build
-/*
-func (c *client) getMaxIdleConnections() int {
-	if c.maxIdleConnections > 0 {
-		return c.maxIdleConnections
-	}
-	return defaultMaxIdleConnections
-}
-
-func (c *client) getResponseTimeOut() time.Duration {
-	if c.responseTimeOut > 0 {
-		return c.responseTimeOut
-	}
-	return defaultResponseTimeOut
-}
-
-func (c *client) getConnectionTimeout() time.Duration {
-	if c.connectionTimeout > 0 {
-		return c.connectionTimeout
-	}
-	return defaultConnectionTimeout
-}
-*/
-func (c *client) getRequestBody(body interface{}, contentType string) ([]byte, error) {
-
-	switch assertedBody := body.(type) {
-	case nil:
-		return nil, nil
-	case string:
-		if assertedBody == "" {
-			return nil, nil
-		}
-	case []byte:
-		if len(assertedBody) == 0 {
-			return nil, nil
-		}
-	}
-
-	switch strings.ToLower(contentType) {
-
-	case "application/json":
-		return json.Marshal(body)
-
-	case "application/xml":
-		return xml.Marshal(body)
-
-	default:
-		return json.Marshal(body)
-	}
-
-}
-
-func (c *client) getRequestHeaders(requestHeaders http.Header) http.Header {
-
-	result := make(http.Header)
-
-	// Adding common headers
-	for headerKey, headerVal := range c.builder.headers {
-		if len(headerVal) > 0 {
-			result.Set(headerKey, headerVal[0])
-		}
-	}
-
-	// Adding custom headers
-	for headerKey, headerVal := range requestHeaders {
-		if len(headerVal) > 0 {
-			result.Set(headerKey, headerVal[0])
-		}
-	}
-
-	return result
-}
-
-func (c *client) addDefaultRequestHeaders(requestHeaders *http.Header) {
-
-	if requestHeaders.Get("Content-Type") == "" {
-		requestHeaders.Set("Content-Type", "application/json")
-	}
-	if requestHeaders.Get("Accept") == "" {
-		requestHeaders.Set("Accept", "application/json")
-	}
 }

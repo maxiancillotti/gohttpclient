@@ -1,4 +1,4 @@
-package gohttpclient
+package mock
 
 import (
 	"bytes"
@@ -21,8 +21,8 @@ type Mock struct {
 	ResponseStatusCode int
 }
 
-// GetResponse returns an *http.Response  based on the mock config.
-func (m *Mock) GetResponse() (*http.Response, error) {
+// GetResponse returns an *http.Response based on the mock config and http request submited.
+func (m *Mock) GetResponse(request *http.Request) (*http.Response, error) {
 	if m.Error != nil {
 		return nil, m.Error
 	}
@@ -30,7 +30,9 @@ func (m *Mock) GetResponse() (*http.Response, error) {
 	responseBodyReadCloser := ioutil.NopCloser(bytes.NewReader(m.ResponseBody))
 
 	return &http.Response{
-		StatusCode: m.ResponseStatusCode,
-		Body:       responseBodyReadCloser,
+		StatusCode:    m.ResponseStatusCode,
+		Body:          responseBodyReadCloser,
+		ContentLength: int64(len(m.ResponseBody)),
+		Request:       request,
 	}, nil
 }

@@ -9,6 +9,7 @@ import (
 type ClientBuilder interface {
 
 	// SetHeaders: set common headers to use during all client life
+	// If Content-Type or Accept aren't set, default is application/json.
 	SetHeaders(headers http.Header) ClientBuilder
 
 	// SetMaxIdleConnections sets http.Transaport's MaxIdleConnsPerHost property.
