@@ -11,9 +11,19 @@ import (
 )
 
 const (
-	defaultMaxIdleConnections int           = 5
-	defaultResponseTimeOut    time.Duration = 10 * time.Second
-	defaultConnectionTimeout  time.Duration = 30 * time.Second
+	defaultResponseTimeOut       time.Duration = 10 * time.Second
+	defaultConnectionTimeout     time.Duration = 30 * time.Second
+	defaultFallbackDelay         time.Duration = 300 * time.Millisecond
+	defaultExpectContinueTimeout time.Duration = 1 * time.Second
+	defaultTLSHandshakeTimeout   time.Duration = 10 * time.Second
+
+	defaultKeepAliveTime       time.Duration = 30 * time.Second
+	defaultIdleConnTimeout     time.Duration = 90 * time.Second
+	defaultMaxIdleConnections  int           = 100
+	defaultMaxIdleConnsPerHost int           = 20
+	defaultMaxConnsPerHost     int           = 512
+
+	defaultForceAttemptHTTP2Enabled bool = true
 )
 
 func (c *client) do(method string, url string, headers http.Header, body interface{}) (*http.Response, error) {
@@ -45,23 +55,38 @@ func (c *client) setupHttpClient() {
 	}
 	c.clientOnce.Do(func() {
 
-		c.httpClient = &http.Client{
-			Timeout: c.builder.connectionTimeout + c.builder.responseTimeOut,
-			Transport: &http.Transport{
-				MaxIdleConnsPerHost:   c.builder.maxIdleConnections,
-				ResponseHeaderTimeout: c.builder.responseTimeOut,
-				DialContext: (&net.Dialer{
-					Timeout:   c.builder.connectionTimeout,
-					KeepAlive: 30 * time.Second,
-				}).DialContext,
+		// Covers the entire exchange, from Dial (if a connection is not reused) to reading the body
+		totalTimeout := c.builder.expectContinueTimeout + c.builder.tlsHandshakeTimeout + c.builder.connectionTimeout + c.builder.responseTimeOut
 
-				// The following properties are equal to DefaulTransport
-				ForceAttemptHTTP2:     true,
-				MaxIdleConns:          100,
-				IdleConnTimeout:       90 * time.Second,
-				TLSHandshakeTimeout:   10 * time.Second,
-				ExpectContinueTimeout: 1 * time.Second,
-			},
+		customTransport := http.DefaultTransport.(*http.Transport).Clone()
+
+		// Dialer contains options for connecting to an address
+		customTransport.DialContext = (&net.Dialer{
+			// Dial Timeout limits the time spent establishing a TCP connection (if a new one is needed)
+			Timeout:       c.builder.connectionTimeout,
+			KeepAlive:     c.builder.keepAliveTime,
+			FallbackDelay: c.builder.fallbackDelay,
+			LocalAddr:     c.builder.localAddr,
+		}).DialContext
+
+		customTransport.ResponseHeaderTimeout = c.builder.responseTimeOut
+		customTransport.ExpectContinueTimeout = c.builder.expectContinueTimeout
+		customTransport.TLSHandshakeTimeout = c.builder.tlsHandshakeTimeout
+
+		customTransport.IdleConnTimeout = c.builder.idleConnTimeout
+		customTransport.MaxIdleConns = c.builder.maxIdleConns
+		customTransport.MaxIdleConnsPerHost = c.builder.maxIdleConnsPerHost
+		customTransport.MaxConnsPerHost = c.builder.maxConnsPerHost
+
+		customTransport.ForceAttemptHTTP2 = c.builder.forceAttemptHTTP2Enabled
+
+		c.httpClient = &http.Client{
+			Transport: customTransport,
+			// CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			// 	return errors.New("error")
+			// },
+			Jar:     c.builder.cookieJar,
+			Timeout: totalTimeout,
 		}
 	})
 }
